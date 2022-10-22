@@ -2,7 +2,7 @@ defmodule NumMethodsTest do
   use ExUnit.Case
   doctest NumMethods
 
-  test "greets the world" do
-    assert NumMethods.hello() == :world
+  test "bisection" do
+    assert NumMethods.bisection() == "-1.2737 +/- 0.0005"
   end
 end
