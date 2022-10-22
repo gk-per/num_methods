@@ -8,33 +8,34 @@ defmodule NumMethods do
 
   ## Examples
 
-      iex> NumMethods.bisection()
+      iex> NumMethods.bisection([2, 3, -3, 2, 9], [-2, 4], 0.005)
       "-1.2737 +/- 0.0005"
 
   """
-  def bisection() do
-    IO.inspect(print_polynomial(2, 3, -3, 2, 9))
-    [a, b] = [-2.0, 4.0]
-    epsilon = 0.0005
+  require Logger
 
-    bisection(a, b, epsilon)
+  def bisection(coefficients, range, epsilon) do
+    [a, exp1, b, exp2, c] = coefficients
+    [a0, b0] = range
+    Logger.info("Polynomial: " <> print_polynomial(a, exp1, b, exp2, c))
+    bisection(a0, b0, epsilon, coefficients)
   end
 
-  def bisection(a, b, epsilon) do
+  def bisection(a, b, epsilon, coefficients) do
     result = (a + b) / 2
 
     cond do
-      f(a) * f(b) > 0 ->
+      f(a, coefficients) * f(b, coefficients) > 0 ->
         {:error, "Bad range"}
 
-      check_result_closer_to_zero_than_epsilon(result, epsilon) ->
+      check_result_closer_to_zero_than_epsilon(result, epsilon, coefficients) ->
         "#{Float.round(result, precision(epsilon, 0))}" <> " +/- " <> "#{epsilon}"
 
-      left_or_right_side(a, result) ->
-        bisection(a, result, epsilon)
+      left_or_right_side(a, result, coefficients) ->
+        bisection(a, result, epsilon, coefficients)
 
       true ->
-        bisection(result, b, epsilon)
+        bisection(result, b, epsilon, coefficients)
     end
   end
 
@@ -48,19 +49,21 @@ defmodule NumMethods do
     end
   end
 
-  def check_result_closer_to_zero_than_epsilon(result, epsilon) do
-    abs(f(result)) < epsilon
+  def check_result_closer_to_zero_than_epsilon(result, epsilon, coefficients) do
+    abs(f(result, coefficients)) < epsilon
   end
 
-  def left_or_right_side(a, result) do
-    f(a) * f(result) < 0
+  def left_or_right_side(a, result, coefficients) do
+    f(a, coefficients) * f(result, coefficients) < 0
   end
 
-  def f(x) do
-    build_polynomial(x, 2, 3, -3, 2, 9)
+  def f(x, coefficients) do
+    build_polynomial(x, coefficients)
   end
 
-  def build_polynomial(x, a, exp1, b, exp2, c) do
+
+  def build_polynomial(x, coefficients) do
+    [a, exp1, b, exp2, c] = coefficients
     a * x ** exp1 + b * x ** exp2 + c
   end
 
@@ -68,9 +71,5 @@ defmodule NumMethods do
     "#{a}x^#{exp1}+#{b}x^#{exp2}+#{c} = 0"
     |> String.replace("+-", "-")
     |> String.replace("--", "+")
-  end
-
-  def g(x) do
-    6 * x * x - 6 * x
   end
 end
